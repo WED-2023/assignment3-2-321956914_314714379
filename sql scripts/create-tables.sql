@@ -10,3 +10,19 @@ CREATE TABLE `users` (
     UNIQUE KEY `username` (`username`),
     UNIQUE KEY `email` (`email`)
 ) ENGINE = InnoDB AUTO_INCREMENT = 3 DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = 'Table to store user information after registration'
+
+CREATE TABLE viewed_recipes (
+  user_id INT NOT NULL,
+  recipe_id INT NOT NULL,
+  view_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (user_id, recipe_id)
+);
+
+CREATE TABLE user_searches (
+  user_id INT NOT NULL,
+  search_query TEXT NOT NULL,
+  search_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (user_id, search_query)
+);
+
+
