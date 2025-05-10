@@ -11,18 +11,41 @@ CREATE TABLE `users` (
     UNIQUE KEY `email` (`email`)
 ) ENGINE = InnoDB AUTO_INCREMENT = 3 DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = 'Table to store user information after registration'
 
+CREATE TABLE liked_recipes (
+  user_id INT NOT NULL,
+  recipe_id INT NOT NULL,
+  PRIMARY KEY (user_id, recipe_id)
+)
+
 CREATE TABLE viewed_recipes (
   user_id INT NOT NULL,
   recipe_id INT NOT NULL,
   view_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (user_id, recipe_id)
-);
+)
 
 CREATE TABLE user_searches (
   user_id INT NOT NULL,
-  search_query TEXT NOT NULL,
+  search_query VARCHAR(255) NOT NULL,
   search_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (user_id, search_query)
-);
+)
 
+
+CREATE TABLE recipes (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  name VARCHAR(255) NOT NULL,
+  image VARCHAR(255) NOT NULL,
+  preparationTime VARCHAR(100) NOT NULL,
+  likes INT DEFAULT 0,
+  isVegetarian BOOLEAN NOT NULL,
+  isVegan BOOLEAN NOT NULL,
+  isGlutenFree BOOLEAN NOT NULL,
+  servingsAmount INT NOT NULL,
+  summary TEXT NOT NULL,
+  ingredients JSON NOT NULL,
+  instructions JSON NOT NULL,
+  FOREIGN KEY (user_id) REFERENCES users(id)
+);
 
