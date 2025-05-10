@@ -11,12 +11,11 @@ router.post("/api/register", async (req, res, next) => {
     // username exists
     let user_details = {
       username: req.body.username,
-      firstname: req.body.firstname,
-      lastname: req.body.lastname,
+      firstName: req.body.firstName,
+      lastName: req.body.lastName,
       country: req.body.country,
       password: req.body.password,
       email: req.body.email,
-      profilePic: req.body.profilePic
     }
     let users = [];
     users = await DButils.execQuery("SELECT username from users");
@@ -32,7 +31,7 @@ router.post("/api/register", async (req, res, next) => {
 
     await DButils.execQuery(
       `INSERT INTO users (username, firstname, lastname, country, password, email, profilePic) VALUES ('${user_details.username}', '${user_details.firstname}', '${user_details.lastname}',
-      '${user_details.country}', '${hash_password}', '${user_details.email}', '${user_details.profilePic}')`
+      '${user_details.country}', '${hash_password}', '${user_details.email}')`
     );
     res.status(201).send({ message: "user created", success: true });
   } catch (error) {
