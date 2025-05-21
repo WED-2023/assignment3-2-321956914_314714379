@@ -14,7 +14,7 @@ CREATE TABLE favorite_recipes (
   user_id INT NOT NULL,
   recipe_id INT NOT NULL,
   source ENUM('local', 'spoon') NOT NULL,
-  PRIMARY KEY (user_id, recipe_id)
+  PRIMARY KEY (user_id, recipe_id, source)
 )
 
 CREATE TABLE viewed_recipes (
@@ -22,7 +22,7 @@ CREATE TABLE viewed_recipes (
   recipe_id INT NOT NULL,
   source ENUM('local', 'spoon') NOT NULL,
   view_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (user_id, recipe_id)
+  PRIMARY KEY (user_id, recipe_id, source)
 )
 
 CREATE TABLE user_searches (

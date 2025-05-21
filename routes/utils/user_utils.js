@@ -11,7 +11,7 @@ async function getFavoriteRecipes(user_id){
     const recipes_id = await DButils.execQuery(`select recipe_id,source from favorite_recipes where user_id='${user_id}'`);
     console.log("successfully got the recipes id");
     let favorite_recipes_id_array = [];
-    recipes_id.map((recipe) => favorite_recipes_id_array.push({"recipeid":recipe.recipe_id,"source":recipe.source})); //extracting the recipe ids into array
+    recipes_id.map((recipe) => favorite_recipes_id_array.push({"recipeid":recipe.recipe_id,"source":recipe.source})); 
     return favorite_recipes_id_array;
 }
 

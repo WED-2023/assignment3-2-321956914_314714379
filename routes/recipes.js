@@ -19,16 +19,47 @@ router.get("/random", async (req, res) => {
 });
 
 /**
- * This path returns a full details of a recipe by its id
+ * This path returns a full details of a recipe by its id from the spooncular api
  */
 router.get("/:recipeid", async (req, res) => {
+  let user_id;
   try {
-    const recipe = await recipes_utils.getRecipeDetails(req.params.recipeId);
-    res.send(recipe);
+    if (req.session && req.session.user_id){
+      user_id = req.session.user_id;
+    }
+    console.log("getting recipe information for recipe id: " + req.params.recipeid);
+    const recipe = await recipes_utils.getSpoonRecipeInformation(req.params.recipeid, user_id);
+    console.log("recipe information returned successfully");
+    res.status(200).send(recipe.data);
   } catch (error) {
+    if (error.status === 404) {
+      res.status(404).send({ message: "Recipe not found" });
+    }
+    else {
     res.status(500).send({ message: "Internal Server Error" });
   }
-});
+}});
+
+/**
+ * This path returns a full details of a recipe by its id from the database.
+ */
+router.get("/me/:recipeid", async (req, res) => {
+  let user_id = req.session.user_id;
+  try {
+    console.log("getting recipe information for recipe id from database: " + req.params.recipeid);
+    const recipe = await recipes_utils.getLocalRecipeInformation(req.params.recipeid, user_id);
+    console.log("recipe information returned successfully");
+    res.status(200).send(recipe);
+  } catch (error) {
+    if (error.status === 404) {
+      res.status(404).send({ message: "Recipe not found" });
+    }
+    else {
+    res.status(500).send({ message: "Internal Server Error" });
+  }
+}}
+);
+  
 
 /**
  * This path adds a new recipe to the database.

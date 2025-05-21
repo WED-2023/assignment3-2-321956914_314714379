@@ -8,33 +8,90 @@ var mysql = require('mysql2');
  * Get recipes list from spooncular response and extract the relevant recipe data for preview
  * @param {*} recipes_info 
  */
-
-
-async function getRecipeInformation(recipe_id) {
-    return await axios.get(`${api_domain}/${recipe_id}/information`, {
-        params: {
-            includeNutrition: false,
-            apiKey: process.env.spooncular_apiKey
-        }
-    });
-}
-
-async function getRecipeDetails(recipe_id) {
-    let recipe_info = await getRecipeInformation(recipe_id);
-    let { id, title, readyInMinutes, image, aggregateLikes, vegan, vegetarian, glutenFree } = recipe_info.data;
-
-    return {
-        id: id,
-        title: title,
-        readyInMinutes: readyInMinutes,
-        image: image,
-        popularity: aggregateLikes,
-        vegan: vegan,
-        vegetarian: vegetarian,
-        glutenFree: glutenFree,
-        
+async function getSpoonRecipeInformation(recipe_id,user_id) {
+    try{
+        if(user_id){
+            console.log("found connected user,adding recipe to viewed recipes");
+            await DButils.execQuery(
+        `INSERT INTO viewed_recipes (user_id, recipe_id, source) VALUES (${user_id}, ${recipe_id}, 'spoon')`
+        );    }
     }
+
+    catch (error) {
+        if (error.code === 'ER_DUP_ENTRY') {
+            console.log("recipe already exists in viewed recipes, updating view time");
+            await DButils.execQuery(
+                `UPDATE viewed_recipes SET view_time = CURRENT_TIMESTAMP WHERE user_id = ${user_id} AND recipe_id = ${recipe_id} AND source = 'spoon'`
+            );
+        }
+        else {
+            console.log("error while adding recipe to viewed recipes: ", error);
+        }
+    }
+
+    finally{
+        return await axios.get(`${api_domain}/${recipe_id}/information`, {
+            params: {
+                includeNutrition: false,
+                apiKey: process.env.spooncular_apiKey
+            }
+        });
+    }
+
 }
+
+
+async function getLocalRecipeInformation(recipe_id,user_id) {
+    try{
+        if(user_id){
+            console.log("found connected user,adding recipe to viewed recipes");
+            await DButils.execQuery(
+        `INSERT INTO viewed_recipes (user_id, recipe_id, source) VALUES (${user_id}, ${recipe_id}, 'local')`
+        );    }
+    }
+
+    catch (error) {
+        if (error.code === 'ER_DUP_ENTRY') {
+            console.log("recipe already exists in viewed recipes, updating view time");
+            await DButils.execQuery(
+                `UPDATE viewed_recipes SET view_time = CURRENT_TIMESTAMP WHERE user_id = ${user_id} AND recipe_id = ${recipe_id} AND source = 'local'`
+            );
+        }
+        else {
+            console.log("error while adding recipe to viewed recipes: ", error);
+        }
+    }
+
+    finally{
+        // Select the recipe from the recipes table
+        const result = await DButils.execQuery(
+            `SELECT * FROM recipes WHERE recipe_id = ${mysql.escape(recipe_id)}`
+        );
+        return result[0];
+    }
+
+}
+
+async function getRecipesPreview(recipe_ids) { // it is needed to consider that there are 2 types of recipes: local and spoonacular.
+    return recipe_ids;
+}
+
+// async function getRecipeDetails(recipe_id) {
+//     let recipe_info = await getRecipeInformation(recipe_id);
+//     let { id, title, readyInMinutes, image, aggregateLikes, vegan, vegetarian, glutenFree } = recipe_info.data;
+
+//     return {
+//         id: id,
+//         title: title,
+//         readyInMinutes: readyInMinutes,
+//         image: image,
+//         popularity: aggregateLikes,
+//         vegan: vegan,
+//         vegetarian: vegetarian,
+//         glutenFree: glutenFree,
+        
+//     }
+// }
 
 async function getRandomRecipes() {
     let response =  await axios.get(`${api_domain}/random`, {
@@ -47,11 +104,6 @@ async function getRandomRecipes() {
     const recipes = response.data.recipes;
     return recipes;   
 }
-
-async function getRecipesPreview(recipe_ids) {
-    return recipe_ids;
-}
-
 
 async function addRecipeToDB(recipeData) {
     console.log("initialize adding recipe to DB");
@@ -84,7 +136,7 @@ async function addRecipeToDB(recipeData) {
 exports.addRecipeToDB = addRecipeToDB;
 exports.getRandomRecipes = getRandomRecipes;
 exports.getRecipesPreview = getRecipesPreview;
-exports.getRecipeDetails = getRecipeDetails;
-
+exports.getSpoonRecipeInformation = getSpoonRecipeInformation;
+exports.getLocalRecipeInformation = getLocalRecipeInformation;
 
 

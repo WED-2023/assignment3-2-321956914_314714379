@@ -84,6 +84,9 @@ router.get('/myrecipes', async (req, res) => {
   }
 });
 
+/**
+ * This path returns a list of all last viewed recipes by the currently authenticated user.
+ */
 router.get("/lastviewed", async (req, res) => {
   try {
     const user_id = req.session.user_id;
@@ -99,6 +102,9 @@ router.get("/lastviewed", async (req, res) => {
   }
 });
 
+/**
+ * This path returns the last search made by the currently authenticated user.
+ */
 router.get("/lastsearch", async (req, res) => {
   try {
     const user_id = req.session.user_id;
