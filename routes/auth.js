@@ -35,7 +35,7 @@ router.post("/register", async (req, res, next) => {
     );
     res.status(201).send({ message: "user created", success: true });
   } catch (error) {
-    next(error);
+    res.status(500).send({ message: "Internal Server Error" });
   }
 });
 
@@ -64,7 +64,7 @@ router.post("/login", async (req, res, next) => {
     // return cookie
     res.status(200).send({ message: "login succeeded " , success: true });
   } catch (error) {
-    next(error);
+    res.status(500).send({ message: "Internal Server Error" });
   }
 });
 

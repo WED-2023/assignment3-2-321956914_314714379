@@ -11,7 +11,7 @@ async function getFavoriteRecipes(user_id){
     const recipes_id = await DButils.execQuery(`select recipe_id,source from favorite_recipes where user_id='${user_id}'`);
     console.log("successfully got the recipes id");
     let favorite_recipes_id_array = [];
-    recipes_id.map((recipe) => favorite_recipes_id_array.push([recipe.recipe_id,recipe.source])); //extracting the recipe ids into array
+    recipes_id.map((recipe) => favorite_recipes_id_array.push({"recipeid":recipe.recipe_id,"source":recipe.source})); //extracting the recipe ids into array
     return favorite_recipes_id_array;
 }
 
@@ -19,7 +19,7 @@ async function getMyRecipes(user_id) {
     const recipes = await DButils.execQuery(`select recipe_id from recipes where user_id='${user_id}'`);
     console.log("successfully got the recipes id");
     let my_recipes_array = [];
-    recipes.map((recipe) => my_recipes_array.push(recipe.recipe_id));
+    recipes.map((recipe) => my_recipes_array.push({"recipeid":recipe.recipe_id}));
     return my_recipes_array;
 }
 
@@ -29,7 +29,7 @@ async function getLastViewedRecipes(user_id) {
     );
     console.log("successfully got the recipes id");
     let last_viewed_recipes_array = [];
-    recipes.map((recipe) => last_viewed_recipes_array.push(recipe.recipe_id,recipe.source));
+    recipes.map((recipe) => last_viewed_recipes_array.push({"recipeid":recipe.recipe_id,"source":recipe.source}));
     return last_viewed_recipes_array;
 }
 
@@ -39,7 +39,7 @@ async function getLastSearch(user_id) {
     );
     console.log("successfully got the last search query");
     let searches = [];
-    result.map((res) => searches.push(res.search_query));
+    result.map((res) => searches.push({"searchquery":res.search_query}));
     console.log(searches)
     return searches.length > 0 ? searches[0] : null;
 }
