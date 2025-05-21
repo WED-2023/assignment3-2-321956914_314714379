@@ -4,15 +4,15 @@ const MySql = require("../routes/utils/MySql");
 const DButils = require("../routes/utils/DButils");
 const bcrypt = require("bcrypt");
 
-router.post("/api/register", async (req, res, next) => {
+router.post("/register", async (req, res, next) => {
   try {
     // parameters exists
     // valid parameters
     // username exists
     let user_details = {
       username: req.body.username,
-      firstName: req.body.firstName,
-      lastName: req.body.lastName,
+      firstname: req.body.firstname,
+      lastname: req.body.lastname,
       country: req.body.country,
       password: req.body.password,
       email: req.body.email,
@@ -39,7 +39,7 @@ router.post("/api/register", async (req, res, next) => {
   }
 });
 
-router.post("/api/login", async (req, res, next) => {
+router.post("/login", async (req, res, next) => {
   try {
     // check that username exists
     const users = await DButils.execQuery("SELECT username FROM users");
@@ -58,7 +58,7 @@ router.post("/api/login", async (req, res, next) => {
     }
 
     // Set cookie
-    req.session.user_id = user.id;
+    req.session.user_id = user.user_id;
     console.log("session user_id login: " + req.session.user_id);
 
     // return cookie
@@ -68,7 +68,7 @@ router.post("/api/login", async (req, res, next) => {
   }
 });
 
-router.post("/api/logout", function (req, res) {
+router.post("/logout", function (req, res) {
   console.log("session user_id Logout: " + req.session.user_id);
   req.session.reset(); // reset the session info --> send cookie when  req.session == undefined!!
   res.send({ success: true, message: "logout succeeded" });

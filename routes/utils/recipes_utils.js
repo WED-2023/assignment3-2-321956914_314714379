@@ -35,8 +35,11 @@ async function getRecipeDetails(recipe_id) {
     }
 }
 
+async function getRecipesPreview(recipe_ids) {
+    return recipe_ids;
+}
 
-
+exports.getRecipesPreview = getRecipesPreview;
 exports.getRecipeDetails = getRecipeDetails;
 
 

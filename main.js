@@ -78,9 +78,9 @@ app.use(function (req, res, next) {
 app.get("/alive", (req, res) => res.send("I'm alive"));
 
 // Routings
-app.use("/users", user);
-app.use("/recipes", recipes);
-app.use("/", auth);
+app.use("/api/users", user);
+app.use("/api/recipes", recipes);
+app.use("/api", auth);
 
 
 
