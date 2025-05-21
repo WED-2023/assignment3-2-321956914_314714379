@@ -35,7 +35,7 @@ router.post('/favorites', async (req, res) => {
       return res.status(400).send("Recipe ID is required in the request body");
     }
 
-    if(source !== "spoon" || source !== "local"){
+    if(source !== "spoon" && source !== "local"){
       return res.status(400).send("Source has to be either 'spoon' or 'local'");
     }
     
