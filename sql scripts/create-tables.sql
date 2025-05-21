@@ -38,7 +38,7 @@ CREATE TABLE recipes (
   user_id INT NOT NULL,
   name VARCHAR(255) NOT NULL,
   image VARCHAR(255) NOT NULL,
-  preparationTime VARCHAR(100) NOT NULL,
+  preparationTime INT NOT NULL,
   likes INT DEFAULT 0,
   isVegetarian BOOLEAN NOT NULL,
   isVegan BOOLEAN NOT NULL,

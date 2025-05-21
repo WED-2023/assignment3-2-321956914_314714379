@@ -60,7 +60,8 @@ router.get('/favorites', async (req, res) => {
     if (favorites.length === 0) {
       return res.status(404).send("No favorite recipes found for this user");
     }
-    const results = await recipe_utils.getRecipesPreview(favorites);
+    console.log("favorites: ", favorites);
+    const results = await recipe_utils.getRecipesPreview(favorites,user_id);
     res.status(200).send(results);
   } catch (error) {
     res.status(500).send({ message: "Internal Server Error" });

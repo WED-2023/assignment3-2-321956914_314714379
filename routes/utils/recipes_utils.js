@@ -67,31 +67,72 @@ async function getLocalRecipeInformation(recipe_id,user_id) {
         const result = await DButils.execQuery(
             `SELECT * FROM recipes WHERE recipe_id = ${mysql.escape(recipe_id)}`
         );
+        if (result.length === 0) {
+            throw { status: 404, message: "Recipe not found" };
+        }
         return result[0];
     }
 
 }
 
-async function getRecipesPreview(recipe_ids) { // it is needed to consider that there are 2 types of recipes: local and spoonacular.
-    return recipe_ids;
+async function getRecipesPreview(recipes,user_id) { // takes as input recipe ids with source and user id.
+    console.log("getting recipes preview");
+    const previews = [];
+    for (const recipe of recipes) {
+        console.log("recipe: ", recipe);
+        let recipeInfo;
+        if (recipe.source === 'local') {
+            console.log("getting recipe information from local database");
+            recipeInfo = await DButils.execQuery(
+            `SELECT * FROM recipes WHERE recipe_id = ${mysql.escape(recipe.recipeid)}`
+        );
+
+        } else if (recipe.source === 'spoon') {
+            console.log("getting recipe information from spooncular api");
+            const response = await axios.get(`${api_domain}/${recipe.recipeid}/information`, {
+            params: {
+                includeNutrition: false,
+                apiKey: process.env.spooncular_apiKey
+            }
+        });
+            recipeInfo = response.data;
+        } else {
+            console.log("error: recipe source is not valid " + recipe.source);
+            continue;
+        }
+
+        console.log("recipeInfo: ", recipeInfo);
+
+        let isFavorite = false;
+        let isViewed = false;
+
+        const liked = await DButils.execQuery(
+            `SELECT * FROM favorite_recipes WHERE user_id = ${mysql.escape(user_id)} AND recipe_id = ${mysql.escape(recipe.recipeid)} AND source = ${mysql.escape(recipe.source)}`
+        );
+        console.log("liked recipes: ", liked);
+        isFavorite = liked.length > 0;
+
+        const viewed = await DButils.execQuery(
+            `SELECT * FROM viewed_recipes WHERE user_id = ${mysql.escape(user_id)} AND recipe_id = ${mysql.escape(recipe.recipeid)} AND source = ${mysql.escape(recipe.source)}`
+        );
+        console.log("viewed recipes: ", viewed);
+        isViewed = viewed.length > 0;
+    
+
+        previews.push({
+            name: recipeInfo.title || recipeInfo[0].name,
+            preparationTime: recipeInfo.readyInMinutes || recipeInfo[0].preparationTime,
+            image: recipeInfo.image || recipeInfo[0].image,
+            popularity: recipeInfo.aggregateLikes || recipeInfo[0].likes,
+            isVegan: recipeInfo.vegan !== undefined ? recipeInfo.vegan : recipeInfo[0].isVegan === 1,
+            isVegetarian: recipeInfo.vegetarian !== undefined ? recipeInfo.vegetarian : recipeInfo[0].isVegetarian === 1,
+            isGlutenFree: recipeInfo.glutenFree !== undefined ? recipeInfo.glutenFree : recipeInfo[0].isGlutenFree === 1,
+            isFavorite,
+            isViewed,
+        });
+    }
+    return previews;
 }
-
-// async function getRecipeDetails(recipe_id) {
-//     let recipe_info = await getRecipeInformation(recipe_id);
-//     let { id, title, readyInMinutes, image, aggregateLikes, vegan, vegetarian, glutenFree } = recipe_info.data;
-
-//     return {
-//         id: id,
-//         title: title,
-//         readyInMinutes: readyInMinutes,
-//         image: image,
-//         popularity: aggregateLikes,
-//         vegan: vegan,
-//         vegetarian: vegetarian,
-//         glutenFree: glutenFree,
-        
-//     }
-// }
 
 async function getRandomRecipes() {
     let response =  await axios.get(`${api_domain}/random`, {

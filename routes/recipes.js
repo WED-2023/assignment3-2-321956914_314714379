@@ -44,6 +44,19 @@ router.get("/:recipeid", async (req, res) => {
  * This path returns a full details of a recipe by its id from the database.
  */
 router.get("/me/:recipeid", async (req, res) => {
+  console.log("checking session user_id: " + req.session.user_id);
+    if (req.session && req.session.user_id) {
+      DButils.execQuery("SELECT user_id FROM users").then((users) => {
+        if (users.find((x) => x.user_id === req.session.user_id)) {
+          req.user_id = req.session.user_id;
+        }
+        else {
+          return res.sendStatus(401);
+        }
+      })
+    } else {
+      return res.sendStatus(401);
+    }
   let user_id = req.session.user_id;
   try {
     console.log("getting recipe information for recipe id from database: " + req.params.recipeid);
