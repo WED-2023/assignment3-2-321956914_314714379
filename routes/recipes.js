@@ -1,6 +1,7 @@
 var express = require("express");
 var router = express.Router();
 const recipes_utils = require("./utils/recipes_utils");
+const DButils = require("./utils/DButils");
 
 /**
  * This path returns 3 random recipes from the spooncular api
@@ -32,10 +33,21 @@ router.get("/:recipeid", async (req, res) => {
 /**
  * This path adds a new recipe to the database.
  */
-
-// add authentication for adding recipe 
-
 router.post("/", async (req, res) => {
+  console.log("checking session user_id: " + req.session.user_id);
+    if (req.session && req.session.user_id) {
+      DButils.execQuery("SELECT user_id FROM users").then((users) => {
+        if (users.find((x) => x.user_id === req.session.user_id)) {
+          req.user_id = req.session.user_id;
+        }
+        else {
+          return res.sendStatus(401);
+        }
+      })
+    } else {
+      return res.sendStatus(401);
+    }
+
   try {
     const user_id = req.session.user_id;
     const {
