@@ -64,7 +64,12 @@ router.post("/login", async (req, res, next) => {
     // return cookie
     res.status(200).send({ message: "login succeeded " , success: true });
   } catch (error) {
-    res.status(500).send({ message: "Internal Server Error" });
+    if (error.status === 401) {
+      res.status(401).send({ message: error.message });
+    } 
+    else {
+      res.status(500).send({ message: "Internal Server Error" });
+    }
   }
 });
 
