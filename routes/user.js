@@ -78,7 +78,7 @@ router.get('/myrecipes', async (req, res) => {
     if (my_recipes_id.length === 0) {
       return res.status(404).send("No recipes found for this user");
     }
-    const results = await recipe_utils.getRecipesPreview(my_recipes_id);
+    const results = await recipe_utils.getRecipesPreview(my_recipes_id,user_id);
     res.status(200).send(results);
   } catch (error) {
     res.status(500).send({ message: "Internal Server Error" });
@@ -91,12 +91,12 @@ router.get('/myrecipes', async (req, res) => {
 router.get("/lastviewed", async (req, res) => {
   try {
     const user_id = req.session.user_id;
-    const last_viewed_recipes_id = await user_utils.getLastViewedRecipes(user_id);
+    const last_viewed_recipes = await user_utils.getLastViewedRecipes(user_id);
 
-    if (last_viewed_recipes_id.length === 0) {
+    if (last_viewed_recipes.length === 0) {
       return res.status(404).send("No viewed recipes found for this user");
     }
-    const results = await recipe_utils.getRecipesPreview(last_viewed_recipes_id);
+    const results = await recipe_utils.getRecipesPreview(last_viewed_recipes,user_id);
     res.status(200).send(results);
   } catch (error) {
     res.status(500).send("Internal Server Error");

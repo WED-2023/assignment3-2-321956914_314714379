@@ -19,7 +19,7 @@ async function getMyRecipes(user_id) {
     const recipes = await DButils.execQuery(`select recipe_id from recipes where user_id='${user_id}'`);
     console.log("successfully got the recipes id");
     let my_recipes_array = [];
-    recipes.map((recipe) => my_recipes_array.push({"recipeid":recipe.recipe_id}));
+    recipes.map((recipe) => my_recipes_array.push({"recipeid":recipe.recipe_id, "source":"local"}));
     return my_recipes_array;
 }
 
