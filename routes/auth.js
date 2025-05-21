@@ -34,8 +34,13 @@ router.post("/register", async (req, res, next) => {
       '${user_details.country}', '${hash_password}', '${user_details.email}')`
     );
     res.status(201).send({ message: "user created", success: true });
-  } catch (error) {
-    res.status(500).send({ message: "Internal Server Error" });
+    } catch (error) {
+    if (error.status === 409) {
+      res.status(409).send({ message: error.message });
+    } 
+    else {
+      res.status(500).send({ message: "Internal Server Error" });
+    }
   }
 });
 

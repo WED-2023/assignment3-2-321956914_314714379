@@ -7,8 +7,7 @@ CREATE TABLE `users` (
     `password` varchar(255) NOT NULL COMMENT 'Hashed password of the user',
     `email` varchar(255) NOT NULL COMMENT 'Email address of the user',
     PRIMARY KEY (`user_id`),
-    UNIQUE KEY `username` (`username`),
-    UNIQUE KEY `email` (`email`)
+    UNIQUE KEY `username` (`username`)
 ) ENGINE = InnoDB AUTO_INCREMENT = 3 DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = 'Table to store user information after registration'
 
 CREATE TABLE favorite_recipes (
