@@ -1,230 +1,1156 @@
-openapi: 3.0.0
-info:
-  title: Recipes api
-  description: API for recipes project
-  version: 1.0.1
+openapi: 3.0.3
 servers:
-  # local:
-  - url: "http://127.0.0.1:80"
-    # remote:
-    # - url: "http://132.72.65.211"
-    description: SwaggerHub API Auto Mocking hey
+  # Added by API Auto Mocking Plugin
+  - description: SwaggerHub API Auto Mocking
+    url: https://virtserver.swaggerhub.com/bgu-4da/assignment_3.1/1.0.0
+info:
+  description: "This API provides functionality for managing recipes. Users can search for, view, create, like, and manage their favorite recipes. It supports both public and authenticated routes, ensuring that users can interact with recipes based on their authentication status."
+  version: "1.0.0"
+  title: Recipes API
+  contact:
+    email: kokoliev@post.bgu.ac.il
+  license:
+    name: Apache 2.0
+    url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
 tags:
-  - name: Auth
-    description: All authentication related routes
-  - name: Users
-    description: All the user's personal app info
-  - name: Recipes
-    description: All reciepes general info
+  - name: users
+    description: Operations related to logged in users.
+  - name: recipes
+    description: Operations related to recipes.
+  - name: auth
+    description: Operations related to authenticating a user - logging in , logging out and registering.
 paths:
-  /register:
+  /api/login:
     post:
       tags:
-        - Auth
-      summary: A new user from the client is added to the server
-      description: A JSON object contains all the details about the new user.
+        - auth
+      summary: User login
+      operationId: loginUser
+      description: |
+        Authenticates a user using a username and password.
+        Saves a sesson cookie with the user id.
       requestBody:
-        description: Inventory item to add
+        required: true
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/User"
-        required: true
+              type: object
+              required:
+                - username
+                - password
+              properties:
+                username:
+                  type: string
+                  description: Username of the user
+                  example: "orlevar"
+                password:
+                  type: string
+                  description: Password of the user
+                  example: "p4ssword!"
       responses:
-        "201":
-          description: A new user has been added
-        "400":
-          description: wrong input parameters
-  /login:
-    post:
-      tags:
-        - Auth
-      summary: Login an exist user
-      description: An exist user login to the system
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/LoginScheme"
-        required: true
-      responses:
-        "200":
-          description: |
-            User was found in the DB and authenitcated successfully. The session ID is returned in a cookie named `session`.  You should include this cookie in subsequent requests
-          headers:
-            Set-Cookie:
-              style: simple
-              explode: false
-              schema:
-                type: string
-                example: session=87s97sdhgf279293f8w0e9
-        "401":
-          description: Authentication failed
-  /logout:
-    post:
-      tags:
-        - Auth
-      summary: logout a user from the system and delete his cookie
-      responses:
-        "200":
-          description: "the user has ben successfully logged out"
-  /users/favorites:
-    get:
-      tags:
-        - Users
-      summary: Return the favorite recipes that were saved by user
-      description: Get an array of recipes that were saved by a specific user
-      responses:
-        "200":
-          description: data about the user's favorites recipes returned
+        '200':
+          description: successfully logged in
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/RecipePreview"
-        "401":
-          description: user is not authorized
-      security:
-        - cookieAuth: []
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "login succeeded "
+                  success:
+                    type: boolean
+                    example: "true"
+        '401':
+          description: could'nt log in, unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Username or Password incorrect"
+        '500':
+          description: server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Internal Server Error"
+  /api/logout:
     post:
       tags:
-        - Users
-      summary: save recipe in the favorites list of a user
-      description: save recipe in the favorites list of a user
+        - auth
+      summary: log out the user
+      description: logout the user from the system.
+      operationId: logoutUser
+      responses:
+        '200':
+          description: successfully logged out
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: "true"
+                  message:
+                    type: string
+                    example: "logout succeeded"
+
+  /api/register:
+    post:
+      tags:
+        - auth
+      summary: Registers a new user
+      description: |
+        Registers a new user with the required details. 
+      operationId: registerUser
       requestBody:
+        required: true
         content:
           application/json:
             schema:
               type: object
               properties:
-                reciepeId:
+                username:
                   type: string
-                  description: reciepe's id which the user saved
-                  example: 716429
+                  description: Username for the user account (3-8 characters, letters only).
+                  example: "orlevar"
+                firstName:
+                  type: string
+                  description: First name of the user.
+                  example: "Or"
+                lastName:
+                  type: string
+                  description: Last name of the user.
+                  example: "Lev Ari"
+                country:
+                  type: string
+                  description: Country of the user.
+                  example: "Israel"
+                password:
+                  type: string
+                  description: Password for the user (must be between 5-10 characters, contain at least one number and one special character).
+                  example: "p4ssword!"
+                email:
+                  type: string
+                  format: email
+                  description: Email address of the user.
+                  example: "orlevar@post.bgu.ac.il"
+                  
+              required:
+                - username
+                - firstName
+                - lastName
+                - country
+                - password
+                - email
       responses:
-        "200":
-          description: The Recipe successfully saved as favorite
-        "401":
-          description: user is not authorized
-      security:
-        - cookieAuth: []
-  /recipes/{recipeId}:
-    get:
-      tags:
-        - Recipes
-      summary: Return preview details on recipe by his ID
-      description: Return preview details on recipe by his ID
-      parameters:
-        - name: recipeId
-          in: path
-          description: recipe's id
-          required: true
-          style: simple
-          explode: false
-          schema:
-            type: integer
-      responses:
-        "200":
-          description: data about the recipe
+        '201':
+          description: user successfully registered
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/RecipePreview"
-        "404":
-          description: recipeId is not exists
-components:
-  schemas:
-    User:
-      type: object
-      properties:
-        username:
-          maxLength: 8
-          minLength: 3
-          type: string
-          description: username conatins between 3 to 8 letters only
-          example: my_name
-        firstname:
-          type: string
-          description: user's first name
-          example: my_first_name
-        lastname:
-          type: string
-          description: user's last name
-          example: my_last_name
-        country:
-          type: string
-          description: user's country
-          example: Israel
-        password:
-          maxLength: 10
-          minLength: 5
-          type: string
-          description:
-            password conatins between 5 to 10 chars, at least one of them
-            is a number and a special char
-          format: password
-          example: my_name@12
-        email:
-          pattern: email
-          type: string
-          description: user's email
-          example: my_name12@gmail.com
-        # image-url:
-        #   pattern: URL
-        #   type: string
-        #   description: URL for the user's image
-        #   example: https://cloudinary.com/
-      description: Model containing user info
-    LoginScheme:
-      type: object
-      properties:
-        username:
-          maxLength: 8
-          minLength: 3
-          type: string
-          description: username conatins letters only
-        password:
-          maxLength: 10
-          minLength: 5
-          description: password conatins at least one number and one special char
-          format: password
-      example:
-        username: my_name
-        password: my_name@12
-    RecipePreview:
-      type: object
-      properties:
-        id:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "user created"
+                  success:
+                    type: boolean
+                    example: "true"
+        '409':
+          description: user already exists
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Username taken"
+                    
+        '500':
+          description: server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Internal Server Error"
+
+  /api/users/lastsearch:
+    get:
+      description: "Retrieves the results from the last search of the user."
+      summary: Get the last search results of the logged-in user
+      parameters: 
+      - in: cookie
+        name : user_id
+        schema:
           type: integer
-          description: recipe identifier
-          example: 102
-        title:
-          type: string
-          description: recipe name
-          example: Simple Macaroni and Cheese
-        image:
-          type: string
-          description: recipe image
-          format: URL
-          example: https://spoonacular.com/recipeimages/655455-566x370.jpg
-        readyInMinutes:
+        required: true
+        description: the logged in user id.
+      tags:
+        - users
+      responses:
+        '200':
+          description: last search performed by the user returned
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    example: 12
+                  source:
+                    type: string
+                    example: local
+                  name:
+                    type: string
+                    example: nugget
+                  preparationTime:
+                    type: integer
+                    example: 2
+                  image:
+                    type: string
+                    example: example.png
+                  popularity:
+                    type: integer
+                    example: 1
+                  isVegan:
+                    type: boolean
+                    example: true
+                  isVegetarian:
+                    type: boolean
+                    example: true
+                  isGlutenFree:
+                    type: boolean
+                    example: true
+                  isFavorite:
+                    type: boolean
+                    example: false
+                  isViewed:
+                    type: boolean
+                    example: false
+        '401':
+          description: Unauthorized
+        '500':
+          description: server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Internal Server Error"
+
+  /api/recipes/search:
+    get:
+      tags:
+        - recipes
+      summary: Search for recipes
+      description: | 
+        Allows searching recipes/dishes by name and applying filters such as cuisine, diet, and intolerances.
+      parameters: 
+        - in: cookie
+          name : user_id
+          schema:
+            type: integer
+          required: false
+          description: the logged in user id.
+        - in: query
+          name: search
+          schema:
+            type: string
+          required: true
+          description: name of dish / recipe (e.g. "Falafel")
+        - in: query
+          name: cuisine
+          schema:
+            type: string
+          description: Filter by cuisine type (e.g. "thai")
+        - in: query
+          name: diet
+          schema:
+            type: string
+          description: Filter by diet type (e.g. "ketogenic")
+        - in: query
+          name: intolerance
+          schema:
+            type: string
+          description: Filter by intolerances (e.g. "peanut")
+        - in: query
+          name: numresults
+          schema:
+            type: integer
+            enum: [5, 10, 15]
+            default: 5
+          required: false
+          description: Number of results to return
+      responses:
+        '200':
+          description: search results returned from the server
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    example: 12
+                  source:
+                    type: string
+                    example: local
+                  name:
+                    type: string
+                    example: nugget
+                  preparationTime:
+                    type: integer
+                    example: 2
+                  image:
+                    type: string
+                    example: example.png
+                  popularity:
+                    type: integer
+                    example: 1
+                  isVegan:
+                    type: boolean
+                    example: true
+                  isVegetarian:
+                    type: boolean
+                    example: true
+                  isGlutenFree:
+                    type: boolean
+                    example: true
+                  isFavorite:
+                    type: boolean
+                    example: false
+                  isViewed:
+                    type: boolean
+                    example: false
+        '404':
+          description: No recipes found
+        '500':
+          description: server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Internal Server Error"
+                    
+  /api/recipes/me/{recipeid}:
+    get:
+      tags:
+        - recipes
+      summary: Get details of a specific recipe from local database.
+      description: Reutrns all details for a recipe by its ID from server database.    
+      parameters: 
+        - in: path
+          name: recipeid
+          required: true
+          schema:
+            type: integer
+          description: ID of the recipe to retrieve
+        - in: cookie
+          name : user_id
+          schema:
+            type: integer
+          required: true
+          description: the logged in user id.
+      responses:
+        '200':
+          description: Recipe retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  recipe_id:
+                    type: integer
+                    example: 13
+                  user_id:
+                    type: integer
+                    example: 4
+                  name:
+                    type: string
+                    example: Falafel
+                  image:
+                    type: string
+                    format: uri
+                    example: https://example.com/images/falafel.jpg
+                  preparationTime:
+                    type: integer
+                    description: Preparation time in minutes
+                    example: 30
+                  likes:
+                    type: integer
+                    example: 1
+                  isVegetarian:
+                    type: boolean
+                    example: true
+                  isVegan:
+                    type: boolean
+                    example: true
+                  isGlutenFree:
+                    type: boolean
+                    example: false
+                  servingsAmount:
+                    type: integer
+                    example: 4
+                  summary:
+                    type: string
+                    example: A traditional Middle Eastern dish made with ground chickpeas and herbs.
+                  ingredients:
+                    type: array
+                    items:
+                      type: string
+                    example:
+                      - 1 cup chickpeas
+                      - 1 onion
+                      - 2 cloves garlic
+                      - 1 tsp cumin
+                  instructions:
+                    type: array
+                    items:
+                      type: string
+                    example:
+                      - Soak the chickpeas overnight.
+                      - Blend all ingredients until smooth.
+                      - Form into balls and fry until golden brown.
+        '401':
+          description: Unauthorized
+        '404':
+          description: Recipe not found
+        '500':
+          description: server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Internal Server Error"
+      
+      
+  /api/recipes/{recipeid}:
+    get:
+      tags:
+        - recipes
+      summary: Get details of a specific recipe from spooncular api.
+      description: Reutrns all details for a recipe by its ID from spooncular api.
+      parameters: 
+        - in: path
+          name: recipeid
+          required: true
+          schema:
+            type: integer
+          description: ID of the recipe to retrieve
+        - in: cookie
+          name : user_id
+          schema:
+            type: integer
+          required: false
+          description: the logged in user id.
+      responses:
+        '200':
+          description: A detailed recipe object from spooncular api
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    example: 716429
+                  title:
+                    type: string
+                    example: Pasta with Garlic, Scallions, Cauliflower & Breadcrumbs
+                  image:
+                    type: string
+                    format: uri
+                    example: https://img.spoonacular.com/recipes/716429-556x370.jpg
+                  imageType:
+                    type: string
+                    example: jpg
+                  servings:
+                    type: integer
+                    example: 2
+                  readyInMinutes:
+                    type: integer
+                    example: 45
+                  cookingMinutes:
+                    type: integer
+                    example: 25
+                  preparationMinutes:
+                    type: integer
+                    example: 20
+                  license:
+                    type: string
+                    example: CC BY-SA 3.0
+                  sourceName:
+                    type: string
+                    example: Full Belly Sisters
+                  sourceUrl:
+                    type: string
+                    format: uri
+                    example: http://fullbellysisters.blogspot.com/2012/06/pasta-with-garlic-scallions-cauliflower.html
+                  spoonacularSourceUrl:
+                    type: string
+                    format: uri
+                    example: https://spoonacular.com/pasta-with-garlic-scallions-cauliflower-breadcrumbs-716429
+                  healthScore:
+                    type: number
+                    format: float
+                    example: 19.0
+                  spoonacularScore:
+                    type: number
+                    format: float
+                    example: 83.0
+                  pricePerServing:
+                    type: number
+                    format: float
+                    example: 163.15
+                  analyzedInstructions:
+                    type: array
+                    items:
+                      type: object
+                    example: []
+                  cheap:
+                    type: boolean
+                    example: false
+                  creditsText:
+                    type: string
+                    example: Full Belly Sisters
+                  cuisines:
+                    type: array
+                    items:
+                      type: string
+                    example: []
+                  dairyFree:
+                    type: boolean
+                    example: false
+                  diets:
+                    type: array
+                    items:
+                      type: string
+                    example: []
+                  gaps:
+                    type: string
+                    example: no
+                  glutenFree:
+                    type: boolean
+                    example: false
+                  instructions:
+                    type: string
+                    example: ""
+                  ketogenic:
+                    type: boolean
+                    example: false
+                  lowFodmap:
+                    type: boolean
+                    example: false
+                  occasions:
+                    type: array
+                    items:
+                      type: string
+                    example: []
+                  sustainable:
+                    type: boolean
+                    example: false
+                  vegan:
+                    type: boolean
+                    example: false
+                  vegetarian:
+                    type: boolean
+                    example: false
+                  veryHealthy:
+                    type: boolean
+                    example: false
+                  veryPopular:
+                    type: boolean
+                    example: false
+                  whole30:
+                    type: boolean
+                    example: false
+                  weightWatcherSmartPoints:
+                    type: integer
+                    example: 17
+                  dishTypes:
+                    type: array
+                    items:
+                      type: string
+                    example:
+                      - lunch
+                      - main course
+                      - main dish
+                      - dinner
+                  extendedIngredients:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        aisle:
+                          type: string
+                          example: Produce
+                        amount:
+                          type: number
+                          format: float
+                          example: 2.0
+                        consistency:
+                          type: string
+                          example: solid
+                        id:
+                          type: integer
+                          example: 10011135
+                        image:
+                          type: string
+                          example: cauliflower.jpg
+                        measures:
+                          type: object
+                          properties:
+                            metric:
+                              type: object
+                              properties:
+                                amount:
+                                  type: number
+                                  example: 473.176
+                                unitLong:
+                                  type: string
+                                  example: milliliters
+                                unitShort:
+                                  type: string
+                                  example: ml
+                            us:
+                              type: object
+                              properties:
+                                amount:
+                                  type: number
+                                  example: 2.0
+                                unitLong:
+                                  type: string
+                                  example: cups
+                                unitShort:
+                                  type: string
+                                  example: cups
+                        meta:
+                          type: array
+                          items:
+                            type: string
+                        name:
+                          type: string
+                          example: cauliflower florets
+                        original:
+                          type: string
+                          example: about 2 cups frozen cauliflower florets, thawed, cut into bite-sized pieces
+                        originalName:
+                          type: string
+                          example: about frozen cauliflower florets, thawed, cut into bite-sized pieces
+                        unit:
+                          type: string
+                          example: cups
+                  summary:
+                    type: string
+                    example: >
+                      Pasta with Garlic, Scallions, Cauliflower & Breadcrumbs might be a good recipe to expand your main course repertoire. One portion of this dish contains approximately 19g of protein, 20g of fat, and a total of 584 calories.
+                  winePairing:
+                    type: object
+                    properties:
+                      pairedWines:
+                        type: array
+                        items:
+                          type: string
+                        example:
+                          - chardonnay
+                          - gruener veltliner
+                          - sauvignon blanc
+                      pairingText:
+                        type: string
+                        example: >
+                          Chardonnay, Gruener Veltliner, and Sauvignon Blanc are great choices for Pasta...
+                      productMatches:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: integer
+                              example: 469199
+                            title:
+                              type: string
+                              example: Buddha Kat Winery Chardonnay
+                            description:
+                              type: string
+                              example: We barrel ferment our Chardonnay...
+                            price:
+                              type: string
+                              example: "$25.0"
+                            imageUrl:
+                              type: string
+                              format: uri
+                              example: https://img.spoonacular.com/products/469199-312x231.jpg
+                            averageRating:
+                              type: number
+                              format: float
+                              example: 0.8
+                            ratingCount:
+                              type: number
+                              format: float
+                              example: 1.0
+                            score:
+                              type: number
+                              format: float
+                              example: 0.55
+                            link:
+                              type: string
+                              format: uri
+                              example: https://www.amazon.com/2015-Buddha-Kat-Winery-Chardonnay/dp/B00OSAVVM4?tag=spoonacular-20
+
+        '404':
+          description: Recipe not found
+        '500':
+          description: server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Internal Server Error"
+          
+  /api/recipes:
+    post:
+      tags:
+        - recipes
+      summary: Create a new recipe
+      description: |
+        Allows a user to create a new recipe. The recipe will be saved to the database and displayed under "My Recipes".
+      parameters: 
+      - in: cookie
+        name : user_id
+        schema:
           type: integer
-          description: the time takes to make this recipe
-          example: 45
-        popularity:
+        required: true
+        description: the logged in user id.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - recipename
+                - image
+                - preparationTime
+                - isVegetarian
+                - isVegan
+                - isGlutenFree
+                - servingsAmount
+                - summary
+                - ingredients
+                - instructions
+              properties:
+                recipename:
+                  type: string
+                  description: Name of the recipe
+                  example: "Classic Falafel"
+                image:
+                  type: string
+                  format: uri
+                  description: URL of the recipe image
+                  example: "https://example.com/images/falafel.jpg"
+                preparationTime:
+                  type: integer
+                  description: Total preparation time in minutes
+                  example: "30"
+                isVegetarian:
+                  type: boolean
+                  description: Whether the recipe is vegetarian
+                  example: true
+                isVegan:
+                  type: boolean
+                  description: Whether the recipe is vegan
+                  example: true
+                isGlutenFree:
+                  type: boolean
+                  description: Whether the recipe is gluten-free
+                  example: false
+                servingsAmount:
+                  type: integer
+                  description: Number of servings the recipe makes
+                  example: 4
+                summary:
+                  type: string
+                  description: A brief summary of the recipe
+                  example: "A traditional Middle Eastern dish made with chickpeas and herbs."
+                ingredients:
+                  type: array
+                  description: List of ingredients with quantities
+                  items:
+                    type: string
+                  example: ["1 cup chickpeas", "1 onion", "2 cloves garlic", "1 tsp cumin"]
+                instructions:
+                  type: array
+                  description: Step-by-step cooking instructions
+                  items:
+                    type: string
+                  example:
+                    - "Soak the chickpeas overnight."
+                    - "Blend all ingredients until smooth."
+                    - "Form into balls and fry until golden brown."
+      responses:
+        '201':
+          description: The Recipe was successfully created
+        '400':
+          description: Missing required parameters
+        '401':
+          description: unauthorized — user not logged in or invalid token
+        '500':
+          description: server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Internal Server Error"
+                    
+                    
+  /api/users/myrecipes:
+    get:
+      tags:
+        - users
+      summary: Get all recipes created by the user
+      description: |
+        Retrieves a list of all recipes that the currently authenticated user has created. 
+      parameters: 
+      - in: cookie
+        name : user_id
+        schema:
           type: integer
-          description: how many likes got this recipe
-          example: 5987
-        vegetarian:
-          type: boolean
-          description: indication if the recipe is vegetarian
-          example: false
-        vegan:
-          type: boolean
-          description: indication if the recipe is vegan
-          example: false
-        glutenFree:
-          type: boolean
-          description: indication if the recipe is gluten free
-          example: false
+        required: true
+        description: the logged in user id.
+      responses:
+        '200':
+          description: recipes created by user returned
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    example: 12
+                  source:
+                    type: string
+                    example: local
+                  name:
+                    type: string
+                    example: nugget
+                  preparationTime:
+                    type: integer
+                    example: 2
+                  image:
+                    type: string
+                    example: example.png
+                  popularity:
+                    type: integer
+                    example: 1
+                  isVegan:
+                    type: boolean
+                    example: true
+                  isVegetarian:
+                    type: boolean
+                    example: true
+                  isGlutenFree:
+                    type: boolean
+                    example: true
+                  isFavorite:
+                    type: boolean
+                    example: false
+                  isViewed:
+                    type: boolean
+                    example: false
+        '401':
+          description: Unauthorized
+        '404':
+          description: No recipes found for this user
+        '500':
+          description: server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Internal Server Error"
+    
+  /api/users/favorite:
+    post:
+      tags:
+        - users
+      summary: Mark a recipe as favorite.
+      description: |
+        Marks a recipe as favorited by the authenticated user.
+      parameters: 
+      - in: cookie
+        name : user_id
+        schema:
+          type: integer
+        required: true
+        description: the logged in user id.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - recipeid
+                - source
+              properties:
+                recipeid:
+                  type: integer
+                  description: the recipe id to mark as favorited.
+                  example: "12"
+                source:
+                  type: string
+                  description: the source of the recipe ( local or spoon )
+                  example: "local"
+      responses:
+        '200':
+          description: The Recipe successfully saved as favorite
+        '401':
+          description: Unauthorized
+        '409':
+          description: Recipe is already in favorites
+        '500':
+          description: server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Internal Server Error"
+    
+  /api/users/favorites:
+    get:
+      tags:
+        - users
+      summary: Get all recipes favorited by the user
+      description: |
+        Retrieves a list of all recipes that the currently authenticated user has favorited. 
+      parameters: 
+      - in: cookie
+        name : user_id
+        schema:
+          type: integer
+        required: true
+        description: the logged in user id.
+      responses:
+        '200':
+          description: recipes favorited by user returned
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    example: 12
+                  source:
+                    type: string
+                    example: spoon
+                  name:
+                    type: string
+                    example: nugget
+                  preparationTime:
+                    type: integer
+                    example: 2
+                  image:
+                    type: string
+                    example: example.png
+                  popularity:
+                    type: integer
+                    example: 1
+                  isVegan:
+                    type: boolean
+                    example: true
+                  isVegetarian:
+                    type: boolean
+                    example: true
+                  isGlutenFree:
+                    type: boolean
+                    example: true
+                  isFavorite:
+                    type: boolean
+                    example: false
+                  isViewed:
+                    type: boolean
+                    example: false
+        '401':
+          description: Unauthorized
+        '404':
+          description: No favorite recipes found for this user
+        '500':
+          description: server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Internal Server Error"
+
+  /api/recipes/random:
+    get:
+      parameters: 
+        - in: cookie
+          name : user_id
+          schema:
+            type: integer
+          required: false
+          description: the logged in user id.
+      description: "Retrieves a list of 3 random recipes. "
+      summary: Get 3 random recipes for exploration
+      tags:
+        - recipes
+      responses:
+        '200':
+          description: random recipes returned
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    example: 12
+                  source:
+                    type: string
+                    example: spoon
+                  name:
+                    type: string
+                    example: nugget
+                  preparationTime:
+                    type: integer
+                    example: 2
+                  image:
+                    type: string
+                    example: example.png
+                  popularity:
+                    type: integer
+                    example: 1
+                  isVegan:
+                    type: boolean
+                    example: true
+                  isVegetarian:
+                    type: boolean
+                    example: true
+                  isGlutenFree:
+                    type: boolean
+                    example: true
+                  isFavorite:
+                    type: boolean
+                    example: false
+                  isViewed:
+                    type: boolean
+                    example: false
+        '500':
+          description: server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Internal Server Error"
+          
+  /api/users/lastviewed:
+    get:
+      description: "Retrieves a list of the last 3 recipes viewed by the user."
+      summary: Get the last 3 recipes the user viewed
+      tags:
+        - users
+      parameters: 
+      - in: cookie
+        name : user_id
+        schema:
+          type: integer
+        required: true
+        description: the logged in user id.
+      responses:
+        '200':
+          description: 3 recipes viewed by user returned
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    example: 12
+                  source:
+                    type: string
+                    example: local
+                  name:
+                    type: string
+                    example: nugget
+                  preparationTime:
+                    type: integer
+                    example: 2
+                  image:
+                    type: string
+                    example: example.png
+                  popularity:
+                    type: integer
+                    example: 1
+                  isVegan:
+                    type: boolean
+                    example: true
+                  isVegetarian:
+                    type: boolean
+                    example: true
+                  isGlutenFree:
+                    type: boolean
+                    example: true
+                  isFavorite:
+                    type: boolean
+                    example: false
+                  isViewed:
+                    type: boolean
+                    example: false
+        '401':
+          description: Unauthorized
+        '404':
+          description: No viewed recipes found for this user
+        '500':
+          description: server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Internal Server Error"
