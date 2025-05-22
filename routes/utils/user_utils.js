@@ -1,4 +1,5 @@
 const DButils = require("./DButils");
+const recipes_utils = require("./recipes_utils");
 
 async function markAsFavorite(user_id, recipe_id, source) {
     await DButils.execQuery(`insert into favorite_recipes values ('${user_id}',${recipe_id},'${source}')`);
@@ -35,13 +36,20 @@ async function getLastViewedRecipes(user_id) {
 
 async function getLastSearch(user_id) {
     const result = await DButils.execQuery(
-        `SELECT search_query FROM user_searches WHERE user_id='${user_id}' ORDER BY search_time DESC LIMIT 1`
+        `SELECT search_result FROM user_searches WHERE user_id='${user_id}' ORDER BY search_time DESC LIMIT 1`
     );
-    console.log("successfully got the last search query");
     let searches = [];
-    result.map((res) => searches.push({"searchquery":res.search_query}));
-    console.log(searches)
-    return searches.length > 0 ? searches[0] : null;
+    result.map((res) => searches.push({"searchresult":res.search_result}));
+    if (searches.length === 0) {
+        console.log("there is no last search result");
+        return null;
+    }
+    console.log("successfully got the last search");
+    results_array = []
+    for (const element of searches[0].searchresult) {
+        results_array.push(element);
+    }
+    return await recipes_utils.getRecipesPreviewRandSearch(results_array,user_id);
 }
 
 exports.getLastSearch = getLastSearch;

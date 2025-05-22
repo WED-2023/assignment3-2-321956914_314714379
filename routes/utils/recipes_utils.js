@@ -136,7 +136,7 @@ async function getRecipesPreview(recipes,user_id) { // takes as input recipe ids
 
 // takes as input whole recipes , will be used in random and search previews. user id is to trach likes and views. previews do not update those.
 // they are from spooncular api and are not saved in the database.
-async function getRecipesPreviewGivenFullDetails(recipes,user_id) { 
+async function getRecipesPreviewRandSearch(recipes,user_id) { 
     console.log("getting recipes preview for random or search");
     console.log("user id: ", user_id);
     if (user_id)
@@ -253,7 +253,7 @@ async function addRecipeToDB(recipeData) {
     console.log("recipe added to DB successfully");
 }
 
-async function getSearchResults(search, numresults = 5, cuisine, diet, intolerance) {
+async function getSearchResults(search, numresults = 5, cuisine, diet, intolerance, user_id) {
     try {
       console.log("fetching search results from spoon api");
       const params = {
@@ -274,6 +274,34 @@ async function getSearchResults(search, numresults = 5, cuisine, diet, intoleran
         console.log("no recipes found for the search");
         return [];
       }
+
+      // save to database the results in json format if the user is logged in
+      try{
+        if(user_id){
+            console.log("found connected user,adding search results to user searches");
+            jsonres = JSON.stringify(response.data.results)
+            await DButils.execQuery(
+                `INSERT INTO user_searches (user_id, search_result) VALUES (${user_id}, '${jsonres}')`
+            );
+        }
+
+        else{
+            console.log("user is not connected, not saving search results to database");
+        }
+      }
+
+      catch (error) {
+        if (error.code === 'ER_DUP_ENTRY') {
+            console.log("search results already exists in user searches, updating search time");
+            await DButils.execQuery(
+                `UPDATE user_searches SET search_time = CURRENT_TIMESTAMP WHERE user_id = ${user_id} AND search_result = '${jsonres}'`
+            );
+        }
+        else {
+            console.log("error while adding search results to user searches: ", error);
+        }
+      }
+
       return response.data.results;
 
     } catch (error) {
@@ -282,10 +310,11 @@ async function getSearchResults(search, numresults = 5, cuisine, diet, intoleran
     }
   }
 
+
 exports.addRecipeToDB = addRecipeToDB;
 exports.getRandomRecipes = getRandomRecipes;
 exports.getRecipesPreview = getRecipesPreview;
 exports.getSpoonRecipeInformation = getSpoonRecipeInformation;
 exports.getLocalRecipeInformation = getLocalRecipeInformation;
-exports.getRecipesPreviewGivenFullDetails = getRecipesPreviewGivenFullDetails;
+exports.getRecipesPreviewRandSearch = getRecipesPreviewRandSearch;
 exports.getSearchResults = getSearchResults;

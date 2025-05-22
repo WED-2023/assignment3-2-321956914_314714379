@@ -115,6 +115,7 @@ router.get("/lastsearch", async (req, res) => {
     }
     res.status(200).send(last_search);
   } catch (error) {
+    console.error("Error fetching last search:", error);
     res.status(500).send("Internal Server Error");
   }
 });

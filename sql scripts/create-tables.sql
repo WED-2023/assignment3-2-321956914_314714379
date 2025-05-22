@@ -27,9 +27,9 @@ CREATE TABLE viewed_recipes (
 
 CREATE TABLE user_searches (
   user_id INT NOT NULL,
-  search_query VARCHAR(255) NOT NULL,
+  search_result JSON NOT NULL,
   search_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (user_id, search_query)
+  PRIMARY KEY (user_id)
 )
 
 

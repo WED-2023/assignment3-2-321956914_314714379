@@ -14,13 +14,13 @@ router.get("/search", async (req, res) => {
         }
       const { search, numresults = 5, cuisine, diet, intolerance } = req.query; 
       console.log("search request query:", req.query);
-      const recipes = await recipes_utils.getSearchResults(search, numresults, cuisine, diet, intolerance);
+      const recipes = await recipes_utils.getSearchResults(search, numresults, cuisine, diet, intolerance,user_id);
 
       if (recipes.length === 0) {
         return res.status(404).send({ message: "No recipes found" });
       }
 
-      const previews = await recipes_utils.getRecipesPreviewGivenFullDetails(recipes,user_id);
+      const previews = await recipes_utils.getRecipesPreviewRandSearch(recipes,user_id);
       res.status(200).send(previews);
   } catch (error) {
     console.error("Error fetching search results:", error);
@@ -40,7 +40,7 @@ router.get("/random", async (req, res) => {
       }
       console.log("generating random recipes");
       const recipes = await recipes_utils.getRandomRecipes();
-      const previews = await recipes_utils.getRecipesPreviewGivenFullDetails(recipes,user_id);
+      const previews = await recipes_utils.getRecipesPreviewRandSearch(recipes,user_id);
       res.status(200).send(previews);
   }
   catch (error) {
