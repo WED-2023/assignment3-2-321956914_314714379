@@ -1,5 +1,6 @@
-Names : Rudy Kokoliev , 321956914  
-        Or Lev Ari , 314714379
+Names + ID's :  
+Rudy Kokoliev , 321956914  
+Or Lev Ari , 314714379
 
 API Doc for the server : 
 
