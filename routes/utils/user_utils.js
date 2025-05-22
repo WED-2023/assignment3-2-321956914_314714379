@@ -46,7 +46,7 @@ async function getLastSearch(user_id) {
     }
     console.log("successfully got the last search");
     results_array = []
-    for (const element of searches[0].searchresult) {
+    for (const element of searches[0].searchresult) { // convert it to an array
         results_array.push(element);
     }
     return await recipes_utils.getRecipesPreviewRandSearch(results_array,user_id);
