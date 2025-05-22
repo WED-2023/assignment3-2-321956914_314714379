@@ -1,0 +1,21 @@
+The following changes were made in the API from the moment we started to develop the project : 
+
+1. no need for confirm password in register request, since validations only happen in client side.
+
+2. add logout api call
+
+3. No authentication token is needed in the project, so we removed it - login doesn't return one and operations do not require one, instead we use session cookies.
+
+4. lastsearch now returns the results of the search and not the query.
+
+5. update api responses that are returning preview of recipes to return the correct data.
+
+6. change a few endpoints name - no special reason ( for example removing me from paths on users operations )
+
+7. move post favorite to /users, feels more natural after diving deeper into the project.
+
+8. no need to pass isliked, isviewed to the backend when creating a recipe, it will be provisioned by the server based on the other tables in the database.
+
+9. removed use of wrong schemas
+
+10. add api for getting recipe information from local db
