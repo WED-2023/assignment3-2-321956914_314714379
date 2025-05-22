@@ -25,7 +25,7 @@ router.use(async function (req, res, next) {
 /**
  * This path gets body with recipeId and save this recipe in the favorites list of the logged-in user
  */
-router.post('/favorites', async (req, res) => {
+router.post('/favorite', async (req, res) => {
   try {
     const user_id = req.session.user_id;
     const recipe_id = req.body.recipeid;
