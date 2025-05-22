@@ -120,6 +120,8 @@ async function getRecipesPreview(recipes,user_id) { // takes as input recipe ids
     
 
         previews.push({
+            id: recipeInfo.id || recipeInfo[0].recipe_id,
+            source: recipe.source,
             name: recipeInfo.title || recipeInfo[0].name,
             preparationTime: recipeInfo.readyInMinutes || recipeInfo[0].preparationTime,
             image: recipeInfo.image || recipeInfo[0].image,
