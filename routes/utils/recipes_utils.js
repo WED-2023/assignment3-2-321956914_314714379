@@ -75,7 +75,7 @@ async function getLocalRecipeInformation(recipe_id,user_id) {
 
 }
 
-async function getRecipesPreview(recipes,user_id) { // takes as input recipe ids with source and user id.
+async function getRecipesPreview(recipes,user_id) { // takes as input recipe ids with sources and user id.
     console.log("getting recipes preview");
     const previews = [];
     for (const recipe of recipes) {
@@ -106,16 +106,14 @@ async function getRecipesPreview(recipes,user_id) { // takes as input recipe ids
         let isFavorite = false;
         let isViewed = false;
 
-        const liked = await DButils.execQuery(
+        const fav = await DButils.execQuery(
             `SELECT * FROM favorite_recipes WHERE user_id = ${mysql.escape(user_id)} AND recipe_id = ${mysql.escape(recipe.recipeid)} AND source = ${mysql.escape(recipe.source)}`
         );
-        console.log("liked recipes: ", liked);
-        isFavorite = liked.length > 0;
+        isFavorite = fav.length > 0;
 
         const viewed = await DButils.execQuery(
             `SELECT * FROM viewed_recipes WHERE user_id = ${mysql.escape(user_id)} AND recipe_id = ${mysql.escape(recipe.recipeid)} AND source = ${mysql.escape(recipe.source)}`
         );
-        console.log("viewed recipes: ", viewed);
         isViewed = viewed.length > 0;
     
 
@@ -129,6 +127,85 @@ async function getRecipesPreview(recipes,user_id) { // takes as input recipe ids
             isVegan: recipeInfo.vegan !== undefined ? recipeInfo.vegan : recipeInfo[0].isVegan === 1,
             isVegetarian: recipeInfo.vegetarian !== undefined ? recipeInfo.vegetarian : recipeInfo[0].isVegetarian === 1,
             isGlutenFree: recipeInfo.glutenFree !== undefined ? recipeInfo.glutenFree : recipeInfo[0].isGlutenFree === 1,
+            isFavorite,
+            isViewed,
+        });
+    }
+    return previews;
+}
+
+// takes as input whole recipes , will be used in random and search previews. user id is to trach likes and views. previews do not update those.
+// they are from spooncular api and are not saved in the database.
+async function getRecipesPreviewGivenFullDetails(recipes,user_id) { 
+    console.log("getting recipes preview for random or search");
+    console.log("user id: ", user_id);
+    if (user_id)
+    {
+        console.log("found connected user, checking if he liked or viewed the recipes");
+    }
+
+    else{
+        console.log("user is not connected, setting isFavorite and isViewed to false");
+
+    }
+    const previews = [];
+    const source = 'spoon'; // default source is spoon since the random is from the spoon api.
+    for (const recipe of recipes) {
+        let isFavorite = false;
+        let isViewed = false;
+
+        const fav = await DButils.execQuery(
+            `SELECT * FROM favorite_recipes WHERE user_id = ${mysql.escape(user_id)} AND recipe_id = ${mysql.escape(recipe.id)} AND source = '${source}'`
+        );
+        isFavorite = fav.length > 0;
+
+        const viewed = await DButils.execQuery(
+            `SELECT * FROM viewed_recipes WHERE user_id = ${mysql.escape(user_id)} AND recipe_id = ${mysql.escape(recipe.id)} AND source = '${source}'`
+        );
+        isViewed = viewed.length > 0;
+        // Check for missing fields and fetch from Spoonacular if needed ( happens after search)
+        let needsFetch = false;
+        let fetchedData = {};
+        if (
+            recipe.readyInMinutes === undefined ||
+            recipe.aggregateLikes === undefined ||
+            recipe.vegan === undefined ||
+            recipe.vegetarian === undefined ||
+            recipe.glutenFree === undefined
+        ) {
+            needsFetch = true;
+        }
+
+        if (needsFetch) {
+            try {
+            const response = await axios.get(`${api_domain}/${recipe.id}/information`, {
+                params: {
+                includeNutrition: false,
+                apiKey: process.env.spooncular_apiKey
+                }
+            });
+            fetchedData = response.data;
+            } catch (err) {
+            console.error("Failed to fetch missing recipe details from spoon:", err);
+            }
+        }
+
+        // Fill missing fields from fetchedData if available
+        recipe.readyInMinutes = recipe.readyInMinutes !== undefined ? recipe.readyInMinutes : fetchedData.readyInMinutes;
+        recipe.aggregateLikes = recipe.aggregateLikes !== undefined ? recipe.aggregateLikes : fetchedData.aggregateLikes;
+        recipe.vegan = recipe.vegan !== undefined ? recipe.vegan : fetchedData.vegan;
+        recipe.vegetarian = recipe.vegetarian !== undefined ? recipe.vegetarian : fetchedData.vegetarian;
+        recipe.glutenFree = recipe.glutenFree !== undefined ? recipe.glutenFree : fetchedData.glutenFree;
+        previews.push({
+            id: recipe.id,
+            source: source,
+            name: recipe.title,
+            preparationTime: recipe.readyInMinutes,
+            image: recipe.image,
+            popularity: recipe.aggregateLikes,
+            isVegan: recipe.vegan,
+            isVegetarian: recipe.vegetarian,
+            isGlutenFree: recipe.glutenFree,
             isFavorite,
             isViewed,
         });
@@ -176,10 +253,39 @@ async function addRecipeToDB(recipeData) {
     console.log("recipe added to DB successfully");
 }
 
+async function getSearchResults(search, numresults = 5, cuisine, diet, intolerance) {
+    try {
+      console.log("fetching search results from spoon api");
+      const params = {
+        query: search,
+        number: numresults,
+        apiKey: process.env.spooncular_apiKey,
+      };
+  
+      // Add optional filters
+      if (cuisine) params.cuisine = cuisine;
+      if (diet) params.diet = diet;
+      if (intolerance) params.intolerances = intolerance;
+      console.log("filters added")
+      const response = await axios.get(`${api_domain}/complexSearch`, { params });
+      console.log("search results response returned successfully");
+      console.log("response data: ", response.data);
+      if( response.data.results.length === 0){
+        console.log("no recipes found for the search");
+        return [];
+      }
+      return response.data.results;
+
+    } catch (error) {
+      console.error("error while fetching search results:", error);
+      throw error;
+    }
+  }
+
 exports.addRecipeToDB = addRecipeToDB;
 exports.getRandomRecipes = getRandomRecipes;
 exports.getRecipesPreview = getRecipesPreview;
 exports.getSpoonRecipeInformation = getSpoonRecipeInformation;
 exports.getLocalRecipeInformation = getLocalRecipeInformation;
-
-
+exports.getRecipesPreviewGivenFullDetails = getRecipesPreviewGivenFullDetails;
+exports.getSearchResults = getSearchResults;

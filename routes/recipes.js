@@ -4,15 +4,47 @@ const recipes_utils = require("./utils/recipes_utils");
 const DButils = require("./utils/DButils");
 
 /**
+ * This path searches for recipes in the spooncular api.
+ */
+router.get("/search", async (req, res) => {
+    let user_id;
+    try{
+      if (req.session && req.session.user_id){
+      user_id = req.session.user_id;
+        }
+      const { search, numresults = 5, cuisine, diet, intolerance } = req.query; 
+      console.log("search request query:", req.query);
+      const recipes = await recipes_utils.getSearchResults(search, numresults, cuisine, diet, intolerance);
+
+      if (recipes.length === 0) {
+        return res.status(404).send({ message: "No recipes found" });
+      }
+
+      const previews = await recipes_utils.getRecipesPreviewGivenFullDetails(recipes,user_id);
+      res.status(200).send(previews);
+  } catch (error) {
+    console.error("Error fetching search results:", error);
+    res.status(500).send({ message: "Internal Server Error" });
+  }
+});
+
+
+/**
  * This path returns 3 random recipes from the spooncular api
  */
 router.get("/random", async (req, res) => {
+  let user_id;
   try{
+      if (req.session && req.session.user_id){
+      user_id = req.session.user_id;
+      }
       console.log("generating random recipes");
       const recipes = await recipes_utils.getRandomRecipes();
-      res.status(200).send(recipes);
+      const previews = await recipes_utils.getRecipesPreviewGivenFullDetails(recipes,user_id);
+      res.status(200).send(previews);
   }
   catch (error) {
+      console.error("Error generating random recipes:", error);
       res.status(500).send({ message: "Internal Server Error" });
   }
 
