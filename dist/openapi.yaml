@@ -812,6 +812,18 @@ paths:
                     - "Soak the chickpeas overnight."
                     - "Blend all ingredients until smooth."
                     - "Form into balls and fry until golden brown."
+                familyrecipe:
+                  type: string
+                  description: if yes is sent, it will be saved as a family recipe (if the other family properties are filled)
+                  example: "yes"
+                familyowner:
+                  type: string
+                  description: the family owner of the recipe.
+                  example: "savta haya"
+                whenmade:
+                  type: string
+                  description: in which occasions the recipe is made.
+                  example: "pesach holiday"
       responses:
         '201':
           description: The Recipe was successfully created
@@ -830,6 +842,57 @@ paths:
                     type: string
                     example: "Internal Server Error"
                     
+  /api/users/familyrecipes:
+    get:
+      tags:
+        - users
+      summary: Get all family recipes created by the user
+      description: |
+        Retrieves a list of all family recipes that the currently authenticated user has created. 
+      parameters: 
+      - in: cookie
+        name : user_id
+        schema:
+          type: integer
+        required: true
+        description: the logged in user id.
+      responses:
+        '200':
+          description: family recipes created by user returned
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user_id:
+                    type: integer
+                    example: 12
+                  recipe_id:
+                    type: integer
+                    example: 716433
+                  familyowner:
+                    type: string
+                    example: Mom
+                  whenmade:
+                    type: string
+                    example: pesach
+                  source:
+                    type: string
+                    example: local
+        '401':
+          description: Unauthorized
+        '404':
+          description: No family recipes found for this user
+        '500':
+          description: server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Internal Server Error"
                     
   /api/users/myrecipes:
     get:
