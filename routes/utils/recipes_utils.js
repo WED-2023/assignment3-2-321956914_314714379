@@ -294,7 +294,7 @@ async function getSearchResults(search, numresults = 5, cuisine, diet, intoleran
         if (error.code === 'ER_DUP_ENTRY') {
             console.log("search results already exists in user searches, updating search time");
             await DButils.execQuery(
-                `UPDATE user_searches SET search_time = CURRENT_TIMESTAMP WHERE user_id = ${user_id} AND search_result = '${jsonres}'`
+                `UPDATE user_searches SET search_time = CURRENT_TIMESTAMP, search_result = '${jsonres}' WHERE user_id = ${user_id}`
             );
         }
         else {
