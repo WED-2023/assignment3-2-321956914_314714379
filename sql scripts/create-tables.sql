@@ -25,6 +25,16 @@ CREATE TABLE viewed_recipes (
   PRIMARY KEY (user_id, recipe_id, source)
 )
 
+CREATE TABLE family_recipes(
+  user_id INT NOT NULL,
+  recipe_id INT NOT NULL,
+  familyowner VARCHAR(100) NOT NULL,
+  whenmade VARCHAR(100) NOT NULL,
+  PRIMARY KEY (user_id, recipe_id),
+  FOREIGN KEY (user_id) REFERENCES users(user_id),
+  FOREIGN KEY (recipe_id) REFERENCES recipes(recipe_id)
+)
+
 CREATE TABLE user_searches (
   user_id INT NOT NULL,
   search_result JSON NOT NULL,

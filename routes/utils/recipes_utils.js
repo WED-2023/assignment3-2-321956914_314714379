@@ -226,6 +226,7 @@ async function getRandomRecipes() {
 }
 
 async function addRecipeToDB(recipeData) {
+
     console.log("initialize adding recipe to DB");
     const query = `
         INSERT INTO recipes (
@@ -251,6 +252,27 @@ async function addRecipeToDB(recipeData) {
     console.log("adding recipe to DB");
     await DButils.execQuery(query);
     console.log("recipe added to DB successfully");
+
+    if (
+        recipeData.familyrecipe === 'yes' &&
+        recipeData.familyowner &&
+        recipeData.whenmade
+    ) {
+        console.log("adding family recipe to the database");
+        const addedrecipe = await DButils.execQuery(`SELECT LAST_INSERT_ID() as recipe_id`);
+        const newrecipeid = addedrecipe[0].recipe_id;
+        const insertFamilyQuery = `
+            INSERT INTO family_recipes (user_id, recipe_id, familyowner, whenmade)
+            VALUES (
+                ${mysql.escape(recipeData.user_id)},
+                ${mysql.escape(newrecipeid)},
+                ${mysql.escape(recipeData.familyowner)},
+                ${mysql.escape(recipeData.whenmade)}
+            )
+        `;
+        await DButils.execQuery(insertFamilyQuery);
+        console.log("family recipe added to the database successfully");
+    }
 }
 
 async function getSearchResults(search, numresults = 5, cuisine, diet, intolerance, user_id) {

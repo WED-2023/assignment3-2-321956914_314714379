@@ -86,6 +86,26 @@ router.get('/myrecipes', async (req, res) => {
 });
 
 /**
+ * This path returns a list of all family recipes that the currently authenticated user has created.
+ */
+router.get('/familyrecipes', async (req, res) => {
+  try {
+    const user_id = req.session.user_id;
+    const my_family_recipes = await user_utils.getFamilyRecipes(user_id);
+    console.log("retrieved family recipes: ", my_family_recipes);
+    if (my_family_recipes.length === 0) {
+       return res.status(404).send("No family recipes found for this user");
+    }
+
+    res.status(200).send(my_family_recipes);
+  } catch (error) {
+    console.error("Error fetching family recipes:", error);
+    res.status(500).send({ message: "Internal Server Error" });
+  }
+});
+
+
+/**
  * This path returns a list of all last viewed recipes by the currently authenticated user.
  */
 router.get("/lastviewed", async (req, res) => {

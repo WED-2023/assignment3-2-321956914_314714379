@@ -136,7 +136,10 @@ router.post("/", async (req, res) => {
       servingsAmount,
       summary,
       ingredients,
-      instructions
+      instructions,
+      familyrecipe,
+      familyowner,
+      whenmade
     } = req.body;
 
     // Validate that all required parameters are present
@@ -179,7 +182,10 @@ router.post("/", async (req, res) => {
       servingsAmount,
       summary,
       ingredients: JSON.stringify(ingredients),
-      instructions: JSON.stringify(instructions)
+      instructions: JSON.stringify(instructions),
+      familyrecipe,
+      familyowner,
+      whenmade
     };
 
 

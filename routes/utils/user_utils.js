@@ -24,6 +24,20 @@ async function getMyRecipes(user_id) {
     return my_recipes_array;
 }
 
+async function getFamilyRecipes(user_id) {
+    const family_recipes = await DButils.execQuery(
+        `SELECT * FROM family_recipes WHERE user_id='${user_id}'`
+    );
+    console.log("successfully got the family recipes");
+    let family_recipes_array = [];
+    family_recipes.map((recipe) => {
+        recipe.source = "local";
+        family_recipes_array.push(recipe);
+    });
+    return family_recipes_array;
+}
+
+
 async function getLastViewedRecipes(user_id) {
     const recipes = await DButils.execQuery(
         `SELECT recipe_id,source FROM viewed_recipes WHERE user_id='${user_id}' ORDER BY view_time DESC LIMIT 3`
@@ -57,3 +71,4 @@ exports.getLastViewedRecipes = getLastViewedRecipes;
 exports.getMyRecipes = getMyRecipes;
 exports.markAsFavorite = markAsFavorite;
 exports.getFavoriteRecipes = getFavoriteRecipes;
+exports.getFamilyRecipes = getFamilyRecipes;

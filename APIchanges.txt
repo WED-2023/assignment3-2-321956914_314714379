@@ -16,6 +16,8 @@ The following changes were made in the API from the moment we started to develop
 
 8. no need to pass isliked, isviewed to the backend when creating a recipe, it will be provisioned by the server based on the other tables in the database.
 
-9. removed use of wrong schemas
+9. removed use of wrong schemas.
 
-10. add api for getting recipe information from local db
+10. add api for getting recipe information from local db.
+
+11. add family recipes end point for user.
