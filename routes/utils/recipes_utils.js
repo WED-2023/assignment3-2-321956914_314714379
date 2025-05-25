@@ -30,12 +30,30 @@ async function getSpoonRecipeInformation(recipe_id,user_id) {
     }
 
     finally{
-        return await axios.get(`${api_domain}/${recipe_id}/information`, {
+        let response = await axios.get(`${api_domain}/${recipe_id}/information`, {
             params: {
                 includeNutrition: false,
                 apiKey: process.env.spooncular_apiKey
             }
         });
+
+        try {
+            console.log("trying to get likes from favorite_spoon_recipes");
+            // Check if the recipe exists in favorite_spoon_recipes and count likes
+            console.log("recipe id: ", response.data.id);
+            const likesResult = await DButils.execQuery(
+                `SELECT likes FROM favorite_spoon_recipes WHERE recipe_id = ${mysql.escape(response.data.id)}`
+            );
+            const likes = likesResult[0]?.likes || 0;
+            console.log("likes: ", likes);
+            // Add likes to aggregateLikes
+            response.data.aggregateLikes = (response.data.aggregateLikes || 0) + likes;
+            console.log("aggregateLikes: ", response.data.aggregateLikes);
+        } catch (err) {
+                console.error("Failed to fetch likes from favorite_spoon_recipes:", err);
+    }
+
+        return response;
     }
 
 }
@@ -96,7 +114,22 @@ async function getRecipesPreview(recipes,user_id) { // takes as input recipe ids
             }
         });
             recipeInfo = response.data;
-        } else {
+            try {
+            console.log("trying to get likes from favorite_spoon_recipes");
+            // Check if the recipe exists in favorite_spoon_recipes and count likes
+            const likesResult = await DButils.execQuery(
+                `SELECT likes FROM favorite_spoon_recipes WHERE recipe_id = ${mysql.escape(recipeInfo.id)}`
+            );
+            const likes = likesResult[0]?.likes || 0;
+            // Add likes to aggregateLikes
+            recipeInfo.aggregateLikes = (recipeInfo.aggregateLikes || 0) + likes;
+            } catch (err) {
+                console.error("Failed to fetch likes from favorite_spoon_recipes:", err);
+                
+            } 
+        }
+        
+        else {
             console.log("error: recipe source is not valid " + recipe.source);
             continue;
         }
@@ -196,6 +229,18 @@ async function getRecipesPreviewRandSearch(recipes,user_id) {
         recipe.vegan = recipe.vegan !== undefined ? recipe.vegan : fetchedData.vegan;
         recipe.vegetarian = recipe.vegetarian !== undefined ? recipe.vegetarian : fetchedData.vegetarian;
         recipe.glutenFree = recipe.glutenFree !== undefined ? recipe.glutenFree : fetchedData.glutenFree;
+
+        try {
+            // Check if the recipe exists in favorite_spoon_recipes and count likes
+            const likesResult = await DButils.execQuery(
+                `SELECT likes FROM favorite_spoon_recipes WHERE recipe_id = ${mysql.escape(recipe.id)}`
+            );
+            const likes = likesResult[0]?.likes || 0;
+            // Add likes to aggregateLikes
+            recipe.aggregateLikes = (recipe.aggregateLikes || 0) + likes;
+        } catch (err) {
+            console.error("Failed to fetch likes from favorite_spoon_recipes:", err);
+        }
         previews.push({
             id: recipe.id,
             source: source,

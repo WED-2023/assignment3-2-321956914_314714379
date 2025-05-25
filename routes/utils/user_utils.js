@@ -6,6 +6,14 @@ async function markAsFavorite(user_id, recipe_id, source) {
     if (source === 'local') {
         await DButils.execQuery(`update recipes set likes = likes + 1 where recipe_id = ${recipe_id}`);
     }
+    if (source === 'spoon') {
+        const existing = await DButils.execQuery(`SELECT * FROM favorite_spoon_recipes WHERE recipe_id=${recipe_id}`);
+        if (existing.length > 0) {
+            await DButils.execQuery(`UPDATE favorite_spoon_recipes SET likes = likes + 1 WHERE recipe_id=${recipe_id}`);
+        } else {
+            await DButils.execQuery(`INSERT INTO favorite_spoon_recipes (recipe_id, likes, source) VALUES (${recipe_id}, 1, 'spoon')`);
+        }
+    }
 }
 
 async function getFavoriteRecipes(user_id){

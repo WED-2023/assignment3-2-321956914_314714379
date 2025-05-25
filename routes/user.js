@@ -45,6 +45,7 @@ router.post('/favorite', async (req, res) => {
       res.status(409).send("Recipe is already in favorites");
     }
     else {
+      console.error("Error saving favorite recipe:", error);
       res.status(500).send({ message: "Internal Server Error" });
     }
   }
@@ -64,6 +65,7 @@ router.get('/favorites', async (req, res) => {
     const results = await recipe_utils.getRecipesPreview(favorites,user_id);
     res.status(200).send(results);
   } catch (error) {
+    console.error("Error fetching favorite recipes:", error);
     res.status(500).send({ message: "Internal Server Error" });
   }
 });

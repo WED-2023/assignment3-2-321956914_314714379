@@ -17,6 +17,13 @@ CREATE TABLE favorite_recipes (
   PRIMARY KEY (user_id, recipe_id, source)
 )
 
+CREATE TABLE favorite_spoon_recipes(
+  recipe_id INT NOT NULL,
+  likes INT NOT NULL,
+  source ENUM('local', 'spoon') NOT NULL,
+  PRIMARY KEY (recipe_id)
+)
+
 CREATE TABLE viewed_recipes (
   user_id INT NOT NULL,
   recipe_id INT NOT NULL,
