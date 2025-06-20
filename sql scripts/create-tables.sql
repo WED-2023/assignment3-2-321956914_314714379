@@ -1,3 +1,4 @@
+USE mydb;
 CREATE TABLE `users` (
     `user_id` int NOT NULL AUTO_INCREMENT COMMENT 'User ID generated automatically and incremented for each new user',
     `username` varchar(255) NOT NULL COMMENT 'Username for the user , it is unique identifier',
